@@ -6,7 +6,7 @@
   "scripts": {
     "start:prod": "ts-node app/index",
     "start": "ts-node-dev app/index",
-    "test": "ts-node-dev app/fixData"
+    "genDB": "ts-node data"
   },
   "author": "",
   "license": "ISC",
