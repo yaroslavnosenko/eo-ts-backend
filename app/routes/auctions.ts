@@ -10,13 +10,26 @@ router.get('/auctions/new', async (req: Request, res: Response) => {
   return res.json(row)
 })
 
+router.get('/auctions/q/:name', async (req: Request, res: Response) => {
+  const { name } = req.params
+  const db = await Database.open('./db.sql')
+  const row = await db.all(
+    `SELECT * FROM auctions WHERE auctionName LIKE "%${name}%" LIMIT 5`
+  )
+  return res.json(row)
+})
+
 router.get('/auctions/:auctionId', async (req: Request, res: Response) => {
   const { auctionId } = req.params
   const db = await Database.open('./db.sql')
   const row = await db.get('SELECT * FROM auctions WHERE auctionUniqueId = ?', [
     auctionId,
   ])
-  return res.json(row)
+  const offers = await db.all(
+    'SELECT * FROM offers WHERE auctionUniqueId = ?',
+    [auctionId]
+  )
+  return res.json({ ...row, offers: offers })
 })
 
 export const auctions = router
