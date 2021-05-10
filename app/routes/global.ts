@@ -2,38 +2,78 @@ import { Router, Request, Response } from 'express'
 const Database = require('sqlite-async')
 const router = Router()
 
-// router.get('/categories', async (req: Request, res: Response) => {
-//   const db = await Database.open('./db.sql')
-//   const row = await db.get(
-//     'SELECT AVG(savingComparison) AS "avg" FROM "auctions" WHERE savingComparison != 0 AND savingComparison != 1'
-//   )
-//   return res.json(row)
-// })
+router.get('/stats', async (req: Request, res: Response) => {
+  const db = await Database.open('./db.sql')
+  const auctionStats = await db.get(
+    `SELECT
+      COUNT(DISTINCT auctionUniqueId) as auctions,
+      COUNT(DISTINCT organization) as organizations
+    FROM auctions`
+  )
+  const savings = await db.get(
+    'SELECT AVG(savingComparison) AS avgSavings FROM auctions WHERE savingComparison != 0 AND savingComparison != 1'
+  )
+  const participants = await db.get(
+    'SELECT COUNT(DISTINCT participant) AS participants FROM offers'
+  )
+  return res.json({ ...auctionStats, ...savings, ...participants })
+})
 
-// router.get(
-//   '/savings/category/:category',
-//   async (req: Request, res: Response) => {
-//     const { category } = req.params
-//     const db = await Database.open('./db.sql')
-//     const row = await db.get(
-//       'SELECT AVG(savingComparison) AS "avg" FROM "auctions" WHERE savingComparison != 0 AND savingComparison != 1 AND category = ?',
-//       category
-//     )
-//     return res.json(row)
-//   }
-// )
+router.get('/stats/category/:category', async (req: Request, res: Response) => {
+  const db = await Database.open('./db.sql')
+  const { category } = req.params
+  const auctionStats = await db.get(
+    `SELECT 
+      COUNT(DISTINCT auctionUniqueId) as auctions,
+      COUNT(DISTINCT organization) as organizations
+    FROM auctions
+    WHERE category = ?`,
+    category
+  )
+  const savings = await db.get(
+    `SELECT 
+      AVG(savingComparison) AS avgSavings
+    FROM auctions WHERE savingComparison != 0 AND savingComparison != 1 AND category = ?`,
+    category
+  )
+  const participants = await db.get(
+    `SELECT
+      COUNT(DISTINCT participant) AS participants
+    FROM offers 
+    WHERE auctionUniqueId IN (SELECT auctionUniqueId FROM auctions WHERE category = ?)`,
+    category
+  )
+  return res.json({ ...auctionStats, ...savings, ...participants })
+})
 
-// router.get(
-//   '/savings/subcategory/:subcat',
-//   async (req: Request, res: Response) => {
-//     const { subcat } = req.params
-//     const db = await Database.open('./db.sql')
-//     const row = await db.get(
-//       'SELECT AVG(savingComparison) AS "avg" FROM "auctions" WHERE savingComparison != 0 AND savingComparison != 1 AND subcategory = ?',
-//       subcat
-//     )
-//     return res.json(row)
-//   }
-// )
+router.get(
+  '/stats/subcategory/:category',
+  async (req: Request, res: Response) => {
+    const db = await Database.open('./db.sql')
+    const { category } = req.params
+    const auctionStats = await db.get(
+      `SELECT 
+        COUNT(DISTINCT auctionUniqueId) as auctions,
+        COUNT(DISTINCT organization) as organizations
+      FROM auctions
+      WHERE subcategory = ?`,
+      category
+    )
+    const savings = await db.get(
+      `SELECT 
+        AVG(savingComparison) AS avgSavings
+      FROM auctions WHERE savingComparison != 0 AND savingComparison != 1 AND subcategory = ?`,
+      category
+    )
+    const participants = await db.get(
+      `SELECT
+        COUNT(DISTINCT participant) AS participants
+      FROM offers 
+      WHERE auctionUniqueId IN (SELECT auctionUniqueId FROM auctions WHERE subcategory = ?)`,
+      category
+    )
+    return res.json({ ...auctionStats, ...savings, ...participants })
+  }
+)
 
 export const global = router
