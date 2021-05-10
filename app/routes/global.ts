@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
-const Database = require('sqlite-async')
+import { database } from '../database'
 const router = Router()
 
 router.get('/stats', async (req: Request, res: Response) => {
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const auctionStats = await db.get(
     `SELECT
       COUNT(DISTINCT auctionUniqueId) as auctions,
@@ -20,7 +20,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 })
 
 router.get('/stats/category/:category', async (req: Request, res: Response) => {
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const { category } = req.params
   const auctionStats = await db.get(
     `SELECT 
@@ -49,7 +49,7 @@ router.get('/stats/category/:category', async (req: Request, res: Response) => {
 router.get(
   '/stats/subcategory/:category',
   async (req: Request, res: Response) => {
-    const db = await Database.open('./db.sql')
+    const db = await database()
     const { category } = req.params
     const auctionStats = await db.get(
       `SELECT 

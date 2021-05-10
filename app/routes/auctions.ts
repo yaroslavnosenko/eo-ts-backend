@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
-const Database = require('sqlite-async')
+import { database } from '../database'
 const router = Router()
 
 router.get('/auctions/new', async (req: Request, res: Response) => {
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const row = await db.all(
     'SELECT * FROM auctions ORDER BY auctionStart DESC LIMIT 15'
   )
@@ -12,7 +12,7 @@ router.get('/auctions/new', async (req: Request, res: Response) => {
 
 router.get('/auctions/q/:name', async (req: Request, res: Response) => {
   const { name } = req.params
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const row = await db.all(
     `SELECT * FROM auctions WHERE auctionName LIKE "%${name}%" LIMIT 5`
   )
@@ -21,7 +21,7 @@ router.get('/auctions/q/:name', async (req: Request, res: Response) => {
 
 router.get('/auctions/:auctionId', async (req: Request, res: Response) => {
   const { auctionId } = req.params
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const row = await db.get('SELECT * FROM auctions WHERE auctionUniqueId = ?', [
     auctionId,
   ])

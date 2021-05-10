@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
-const Database = require('sqlite-async')
+import { database } from '../database'
 const router = Router()
 
 router.get('/participants', async (req: Request, res: Response) => {
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const row = await db.all(
     'SELECT DISTINCT participant FROM offers ORDER BY participant DESC'
   )
@@ -12,7 +12,7 @@ router.get('/participants', async (req: Request, res: Response) => {
 
 router.get('/participants/:id', async (req: Request, res: Response) => {
   const { id } = req.params
-  const db = await Database.open('./db.sql')
+  const db = await database()
   const myAuctions = await db.all(
     'SELECT * FROM auctions WHERE auctionUniqueId IN (SELECT DISTINCT auctionUniqueId FROM "offers" WHERE participant = ?)',
     [id]
