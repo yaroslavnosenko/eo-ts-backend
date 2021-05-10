@@ -1,5 +1,6 @@
 import * as express from 'express'
 import { Application } from 'express'
+import * as cors from 'cors'
 import {
   auctions,
   global,
@@ -9,6 +10,7 @@ import {
 } from './routes'
 
 const app: Application = express()
+app.use(cors())
 
 app.use(global)
 app.use(categories)
